@@ -7,7 +7,12 @@ export const useWebSocket = (url: string) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket(url);
+    // Docker 환경 대응: 상대 경로 사용
+    const wsUrl = url.startsWith('ws://localhost') 
+      ? url 
+      : `ws://${window.location.host}/ws/robots`;
+    
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log('✅ WebSocket 연결됨');
@@ -20,7 +25,7 @@ export const useWebSocket = (url: string) => {
       if (message.type === 'robot_states') {
         setRobots(message.data);
       } else if (message.type === 'alert') {
-        setAlerts((prev) => [message, ...prev].slice(0, 10)); // 최근 10개만
+        setAlerts((prev) => [message, ...prev].slice(0, 10));
       }
     };
 

@@ -1,0 +1,131 @@
+# ============================================================
+# ROS2 Bridge - Kubernetes Deployment
+# Namespace: servi-fleet
+# ============================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ros2-bridge
+  namespace: servi-fleet
+  labels:
+    app: ros2-bridge
+    component: bridge
+    version: v1
+spec:
+  replicas: 1  # Bridge는 단일 인스턴스 (ROS2 DDS 특성상)
+  selector:
+    matchLabels:
+      app: ros2-bridge
+  strategy:
+    type: Recreate  # RollingUpdate 대신 Recreate (DDS 충돌 방지)
+  template:
+    metadata:
+      labels:
+        app: ros2-bridge
+        component: bridge
+    spec:
+      # ROS2 DDS 멀티캐스트 접근을 위한 hostNetwork (온프렘 환경)
+      # AWS EKS에서는 제거하고 별도 DDS 설정 필요
+      hostNetwork: false
+      
+      containers:
+        - name: ros2-bridge
+          image: servi-ros2-bridge:latest
+          imagePullPolicy: IfNotPresent
+          
+          env:
+            - name: FASTAPI_WS_URL
+              value: "ws://backend-service:8000/ws/ros2"
+            - name: ROBOT_NAMESPACE
+              value: "/robot"
+            - name: ROBOT_IDS
+              valueFrom:
+                configMapKeyRef:
+                  name: ros2-config
+                  key: robot_ids
+            - name: BRIDGE_LOG_LEVEL
+              value: "INFO"
+            # ROS2 DDS 설정
+            - name: ROS_DOMAIN_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: ros2-config
+                  key: ros_domain_id
+            - name: RMW_IMPLEMENTATION
+              value: "rmw_cyclonedds_cpp"  # CycloneDDS (Humble 권장)
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - "source /opt/ros/humble/setup.bash && ros2 node list | grep -q servi_bridge_node"
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - "source /opt/ros/humble/setup.bash && ros2 node list | grep -q servi_bridge_node"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ros2-config
+  namespace: servi-fleet
+data:
+  robot_ids: "robot_01,robot_02"
+  ros_domain_id: "42"             # 0-232 범위, 다른 ROS2 시스템과 충돌 방지
+  cyclone_dds_config: |
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <CycloneDDS>
+      <Domain>
+        <General>
+          <Interfaces>
+            <NetworkInterface name="eth0" multicast="default" />
+          </Interfaces>
+        </General>
+        <Discovery>
+          <Peers>
+            <Peer address="ros2-robot-navigator-service" />
+          </Peers>
+        </Discovery>
+      </Domain>
+    </CycloneDDS>
+
+---
+# ROS2 Robot Navigator와 통신을 위한 Service
+# (같은 클러스터에 ROS2 Navigator Pod가 있는 경우)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ros2-bridge-service
+  namespace: servi-fleet
+spec:
+  selector:
+    app: ros2-bridge
+  ports:
+    - name: dds-udp
+      protocol: UDP
+      port: 7400
+      targetPort: 7400
+    - name: dds-tcp
+      protocol: TCP
+      port: 7400
+      targetPort: 7400
+  type: ClusterIP

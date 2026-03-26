@@ -1,6 +1,6 @@
 import pytest
 from app.services.alert_service import check_and_send_alerts, sent_alerts
-from app.ros2_bridge.robot_simulator import robot_states
+from app.core.robot_simulator import robot_states
 
 @pytest.mark.asyncio
 async def test_low_battery_alert():

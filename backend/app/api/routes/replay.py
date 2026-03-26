@@ -6,7 +6,7 @@ import asyncio
 from datetime import datetime
 from fastapi import APIRouter
 from app.core.redis import redis_client
-from app.ros2_bridge.robot_simulator import get_all_robots
+from app.core.robot_simulator import get_all_robots
 from app.services.websocket_manager import ws_manager
 
 router = APIRouter(prefix="/api/replay", tags=["replay"])

@@ -1,10 +1,4 @@
-# docker-compose.ros2.yml
-# ============================================================
-# ROS2 Bridge 서비스 추가 오버라이드
-# 사용법: docker-compose -f docker-compose.yml -f docker-compose.ros2.yml up
-# ============================================================
 version: "3.9"
-
 services:
   ros2-bridge:
     build:
@@ -12,7 +6,6 @@ services:
       dockerfile: Dockerfile
     image: servi-ros2-bridge:latest
     container_name: servi-ros2-bridge
-    
     environment:
       - FASTAPI_WS_URL=ws://backend:8000/ws/ros2
       - ROBOT_NAMESPACE=/robot
@@ -20,28 +13,15 @@ services:
       - BRIDGE_LOG_LEVEL=INFO
       - ROS_DOMAIN_ID=42
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-    
     networks:
       - servi-network
-      # UTM Ubuntu의 ROS2 Navigator와 통신하려면
-      # host 네트워크 또는 DDS Discovery 피어 설정 필요
-    
     depends_on:
-      backend:
-        condition: service_healthy
-    
+      - backend
     restart: unless-stopped
-    
-    # ROS2 DDS 멀티캐스트 (로컬 개발 시)
-    # 실제 로봇과 통신할 때는 아래 주석 해제
-    # network_mode: "host"
-    
     volumes:
-      # CycloneDDS 설정 마운트 (선택적)
       - ./ros2_bridge/cyclone_dds.xml:/cyclone_dds.xml:ro
-    
     healthcheck:
-      test: ["CMD-SHELL", "source /opt/ros/humble/setup.bash && ros2 node list | grep -q servi_bridge_node || exit 1"]
+      test: ["CMD-SHELL", "source /opt/ros/jazzy/setup.bash && ros2 node list | grep -q servi_bridge_node || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -49,4 +29,4 @@ services:
 
 networks:
   servi-network:
-    external: true
+    driver: bridge

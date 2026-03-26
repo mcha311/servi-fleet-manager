@@ -4,7 +4,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
-from app.ros2_bridge.robot_simulator import get_all_robots, get_available_robots
+from app.core.robot_simulator import get_all_robots, get_available_robots
 
 router = APIRouter(prefix="/api/robots", tags=["robots"])
 

@@ -3,7 +3,7 @@
 
 import asyncio
 from datetime import datetime
-from app.ros2_bridge.robot_simulator import get_all_robots
+from app.core.robot_simulator import get_all_robots
 from app.services.websocket_manager import ws_manager
 from app.core.config import settings
 

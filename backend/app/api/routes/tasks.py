@@ -5,7 +5,7 @@ import uuid
 import math
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.ros2_bridge.robot_simulator import (
+from app.core.robot_simulator import (
     get_available_robots,
     assign_task_to_robot,
     get_all_robots

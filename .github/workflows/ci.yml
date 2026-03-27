@@ -56,10 +56,10 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:password@localhost:5432/servi_test_db
           REDIS_URL: redis://localhost:6379
+          PYTHONPATH: ${{ github.workspace }}/backend
         run: |
           cd backend
           pytest tests/ -v --cov=app --cov-report=term-missing
-
   lint-backend:
     runs-on: ubuntu-latest
     steps:

@@ -82,3 +82,4 @@ jobs:
             -n default
           kubectl rollout status deployment/servi-backend
           kubectl rollout status deployment/servi-frontend
+          

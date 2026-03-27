@@ -1,0 +1,84 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+env:
+  AWS_REGION: us-west-2
+  ECR_BACKEND: servi-fleet-manager-backend
+  ECR_FRONTEND: servi-fleet-manager-frontend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    # AWS 크레덴셜 있을 때만 실행
+    if: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & push backend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_BACKEND:$IMAGE_TAG ./backend
+          docker build -t $ECR_REGISTRY/$ECR_BACKEND:latest ./backend
+          docker push $ECR_REGISTRY/$ECR_BACKEND:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_BACKEND:latest
+
+      - name: Build & push frontend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_FRONTEND:$IMAGE_TAG ./frontend
+          docker build -t $ECR_REGISTRY/$ECR_FRONTEND:latest ./frontend
+          docker push $ECR_REGISTRY/$ECR_FRONTEND:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_FRONTEND:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name servi-fleet-manager-dev
+
+      - name: Deploy to EKS
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          kubectl set image deployment/servi-backend \
+            backend=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_BACKEND }}:$IMAGE_TAG \
+            -n default
+          kubectl set image deployment/servi-frontend \
+            frontend=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_FRONTEND }}:$IMAGE_TAG \
+            -n default
+          kubectl rollout status deployment/servi-backend
+          kubectl rollout status deployment/servi-frontend

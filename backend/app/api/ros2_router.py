@@ -51,7 +51,7 @@ async def ros2_bridge_ws(
     - 송신: navigate_to / cmd_vel / cancel_goal
     """
     await websocket.accept()
-    bridge_id = "ros2_bridge"
+
     logger.info("🔌 ROS2 Bridge connected")
 
     try:

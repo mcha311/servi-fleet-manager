@@ -13,7 +13,9 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     # AWS 크레덴셜 있을 때만 실행
-    if: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
+    if: false
+    #if: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
+
 
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +54,8 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
+    if: false
+    #if: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
 
     steps:
       - uses: actions/checkout@v4

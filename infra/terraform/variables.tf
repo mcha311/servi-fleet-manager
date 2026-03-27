@@ -1,72 +1,76 @@
-# ============================================================
-# Servi Fleet Manager - AWS Infrastructure
-# ============================================================
-terraform {
-  required_version = ">= 1.5.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-
-  # 실제 배포 시 S3 백엔드 사용
-  # backend "s3" {
-  #   bucket = "servi-terraform-state"
-  #   key    = "prod/terraform.tfstate"
-  #   region = "us-west-2"
-  # }
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-west-2"
 }
 
-provider "aws" {
-  region = var.aws_region
+variable "project_name" {
+  description = "Project name"
+  type        = string
+  default     = "servi-fleet-manager"
 }
 
-# ── VPC ───────────────────────────────────────────────────
-module "vpc" {
-  source = "./modules/vpc"
-
-  project_name = var.project_name
-  environment  = var.environment
-  vpc_cidr     = var.vpc_cidr
+variable "environment" {
+  description = "Environment (dev/staging/prod)"
+  type        = string
+  default     = "dev"
 }
 
-# ── EKS ───────────────────────────────────────────────────
-module "eks" {
-  source = "./modules/eks"
-
-  project_name    = var.project_name
-  environment     = var.environment
-  vpc_id          = module.vpc.vpc_id
-  private_subnets = module.vpc.private_subnet_ids
-  k8s_version     = var.k8s_version
-  node_instance_type = var.node_instance_type
-  node_min_size   = var.node_min_size
-  node_max_size   = var.node_max_size
-  node_desired_size = var.node_desired_size
+variable "vpc_cidr" {
+  description = "VPC CIDR block"
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
-# ── RDS PostgreSQL ─────────────────────────────────────────
-module "rds" {
-  source = "./modules/rds"
-
-  project_name    = var.project_name
-  environment     = var.environment
-  vpc_id          = module.vpc.vpc_id
-  private_subnets = module.vpc.private_subnet_ids
-  db_name         = var.db_name
-  db_username     = var.db_username
-  db_password     = var.db_password
-  instance_class  = var.db_instance_class
+variable "k8s_version" {
+  description = "Kubernetes version"
+  type        = string
+  default     = "1.29"
 }
 
-# ── ElastiCache Redis ──────────────────────────────────────
-module "elasticache" {
-  source = "./modules/elasticache"
+variable "node_instance_type" {
+  description = "EKS node instance type"
+  type        = string
+  default     = "t3.medium"
+}
 
-  project_name    = var.project_name
-  environment     = var.environment
-  vpc_id          = module.vpc.vpc_id
-  private_subnets = module.vpc.private_subnet_ids
-  node_type       = var.redis_node_type
+variable "node_min_size" {
+  type    = number
+  default = 1
+}
+
+variable "node_max_size" {
+  type    = number
+  default = 3
+}
+
+variable "node_desired_size" {
+  type    = number
+  default = 2
+}
+
+variable "db_name" {
+  type    = string
+  default = "servi_db"
+}
+
+variable "db_username" {
+  type    = string
+  default = "postgres"
+}
+
+variable "db_password" {
+  description = "Database password"
+  type        = string
+  sensitive   = true
+}
+
+variable "db_instance_class" {
+  type    = string
+  default = "db.t3.micro"
+}
+
+variable "redis_node_type" {
+  type    = string
+  default = "cache.t3.micro"
 }

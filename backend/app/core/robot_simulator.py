@@ -99,3 +99,34 @@ def get_all_robots() -> list[dict]:
 def get_available_robots() -> list[dict]:
     """idle 상태 로봇만 반환 (작업 배정 가능한 로봇)"""
     return [r for r in robot_states.values() if r["status"] == "idle"]
+
+
+class RobotSimulator:
+    """단일 로봇 시뮬레이터"""
+    def __init__(self, robot_id: str):
+        self.robot_id = robot_id
+        self.state = robot_states.get(robot_id, {})
+
+    async def navigate(self, x: float, y: float):
+        if self.robot_id in robot_states:
+            robot_states[self.robot_id]["status"] = "working"
+            robot_states[self.robot_id]["target_x"] = x
+            robot_states[self.robot_id]["target_y"] = y
+
+    async def cancel(self):
+        if self.robot_id in robot_states:
+            robot_states[self.robot_id]["status"] = "idle"
+            robot_states[self.robot_id].pop("target_x", None)
+            robot_states[self.robot_id].pop("target_y", None)
+
+
+class SimulatorManager:
+    """ROS2 연결 여부에 따라 실제/시뮬 모드 전환"""
+    def __init__(self):
+        self.ros2_connected = False
+
+    def set_ros2_mode(self, connected: bool):
+        self.ros2_connected = connected
+
+    def get_mode(self) -> str:
+        return "ros2" if self.ros2_connected else "simulator"

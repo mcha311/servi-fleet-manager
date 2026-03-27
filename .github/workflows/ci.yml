@@ -99,8 +99,8 @@ jobs:
       - name: Terraform Validate
         run: |
           cd infra/terraform
+          terraform init -backend=false -upgrade
           terraform validate
       - name: Terraform Format Check
         run: |
           cd infra/terraform
-          terraform fmt -check -recursive

@@ -121,4 +121,6 @@ cd backend && pytest tests/ -v --cov=app
 
 ---
 
-[@mcha311](https://github.com/mcha311)
+## Related
+
+- [ROS2 Robot Navigator](https://github.com/mcha311/ROS2-Robot-Navigator) — the ROS2 navigation node that connects to this system

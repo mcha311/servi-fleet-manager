@@ -177,6 +177,9 @@ Each deployment has:
 - `livenessProbe` — auto-restarts unhealthy containers
 - `readinessProbe` — removes from load balancer until ready
 - Resource `requests` and `limits` — prevents noisy neighbor issues
+- `HorizontalPodAutoscaler` — backend scales 2→6 pods at 60% CPU
+- `Ingress` — single entry point, routes `/api`, `/ws` → backend, `/` → frontend
+- `Secret` — sensitive values (DB credentials) separated from ConfigMap
 
 ---
 
@@ -232,6 +235,8 @@ curl http://localhost:8000/api/robots/robot_01/state
 | POST | `/api/robots/{id}/cmd_vel` | Manual velocity control |
 | GET | `/api/robots/{id}/state` | Current robot state |
 | GET | `/api/bridge/status` | ROS2 bridge connection status |
+| GET | `/metrics` | Prometheus metrics endpoint |
+
 
 ---
 

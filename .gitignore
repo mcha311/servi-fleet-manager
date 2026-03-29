@@ -1,1 +1,2 @@
 .terraform/
+infra/k8s/secrets.yaml

@@ -276,7 +276,3 @@ cd backend
 pytest tests/ -v --cov=app --cov-report=term-missing
 # 22 tests — 66% coverage
 ```
-
----
-
-[@mcha311](https://github.com/mcha311)

@@ -13,11 +13,13 @@ from app.core.robot_state import RobotStateStore
 from app.core.connection_manager import ConnectionManager
 from app.services.alert_service import check_and_send_alerts
 from app.api.routes.replay import record_frame
+from prometheus_fastapi_instrumentator import Instrumentator
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.connection_manager = ConnectionManager()
     app.state.robot_store = RobotStateStore()
+    Instrumentator().instrument(app).expose(app)
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

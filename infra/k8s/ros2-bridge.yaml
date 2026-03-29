@@ -68,17 +68,16 @@ spec:
               command:
                 - /bin/bash
                 - -c
-                - "source /opt/ros/humble/setup.bash && ros2 node list | grep -q servi_bridge_node"
+                - "source /opt/ros/jazzy/setup.bash && ros2 node list | grep -q servi_bridge_node"
             initialDelaySeconds: 30
             periodSeconds: 30
             failureThreshold: 3
-
           readinessProbe:
             exec:
               command:
                 - /bin/bash
                 - -c
-                - "source /opt/ros/humble/setup.bash && ros2 node list | grep -q servi_bridge_node"
+                - "source /opt/ros/jazzy/setup.bash && ros2 node list | grep -q servi_bridge_node"
             initialDelaySeconds: 20
             periodSeconds: 10
 

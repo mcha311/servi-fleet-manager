@@ -19,7 +19,6 @@ from prometheus_fastapi_instrumentator import Instrumentator
 async def lifespan(app: FastAPI):
     app.state.connection_manager = ConnectionManager()
     app.state.robot_store = RobotStateStore()
-    Instrumentator().instrument(app).expose(app)
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -41,6 +40,7 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+Instrumentator().instrument(app).expose(app)
 
 app.add_middleware(
     CORSMiddleware,

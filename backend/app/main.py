@@ -8,7 +8,6 @@ from app.core.redis import init_redis, close_redis
 from app import models
 from app.api.routes import websocket, robots, tasks, replay
 from app.api.ros2_router import router as ros2_router
-from app.core.robot_simulator import simulate_robot_movement
 from app.core.robot_state import RobotStateStore
 from app.core.connection_manager import ConnectionManager
 from app.services.alert_service import check_and_send_alerts
@@ -25,7 +24,6 @@ async def lifespan(app: FastAPI):
     await init_redis()
 
     tasks_bg = asyncio.gather(
-        simulate_robot_movement(),
         check_and_send_alerts(),
         record_frame(),
     )

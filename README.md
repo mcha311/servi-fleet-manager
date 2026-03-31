@@ -185,42 +185,30 @@ Each deployment has:
 
 ## Quick Start
 
-**Prerequisites:** Docker, Docker Compose
-
+**Mac:**
 ```bash
 git clone https://github.com/mcha311/servi-fleet-manager
 cd servi-fleet-manager
-
-docker-compose -f docker-compose.yml -f docker-compose.ros2.yml up
+docker-compose up
 ```
 
-- Dashboard: http://localhost:3000
-- API: http://localhost:8000
-- Bridge status: http://localhost:8000/api/bridge/status
-
-The simulator runs automatically when no ROS2 bridge is connected — the dashboard works out of the box.
-
-**Connect a real ROS2 robot (Ubuntu 24.04 + ROS2 Jazzy):**
-
+**UTM Ubuntu (ROS2 Jazzy):**
 ```bash
-# On UTM Ubuntu
-cd ~/servi_ws
-source install/setup.bash
+# 터미널 1 - 시뮬레이터
+ros2 run robot_navigator simulator
+
+# 터미널 2 - Bridge
+cd ~/servi_ws && source install/setup.bash
 export FASTAPI_WS_URL=ws://192.168.64.1:8000/ws/ros2
 ros2 run servi_bridge bridge_node
 
-# Verify connection
-curl http://localhost:8000/api/bridge/status
-# {"bridge_connected": true, "registered_robots": ["robot_01", "robot_02"]}
-
-# Test with a topic publish
-ros2 topic pub /robot/robot_01/odom nav_msgs/msg/Odometry \
-  '{pose: {pose: {position: {x: 1.0, y: 2.0}}}}' --once
-
-# Check robot state
-curl http://localhost:8000/api/robots/robot_01/state
-# {"robot_id": "robot_01", "source": "ros2", "pose": {"x": 1.0, "y": 2.0}}
+# 터미널 3 - Topic relay
+ros2 run topic_tools relay /robot/odom /robot/robot_01/odom
 ```
+
+- Dashboard: http://localhost:3000
+- Bridge status: http://localhost:8000/api/bridge/status
+
 
 ---
 

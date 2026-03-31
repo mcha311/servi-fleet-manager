@@ -269,3 +269,9 @@ cd backend
 pytest tests/ -v --cov=app --cov-report=term-missing
 # 22 tests — 66% coverage
 ```
+---
+
+<img width="1193" height="585" alt="스크린샷 2026-03-30 오후 4 13 19" src="https://github.com/user-attachments/assets/f04ebd8a-2334-4dcf-881d-52df1389aa71" />
+<img width="1216" height="684" alt="스크린샷 2026-03-30 오후 4 10 52" src="https://github.com/user-attachments/assets/574d313b-74bb-465d-926b-66560899a2b0" />
+
+
